@@ -1,0 +1,34 @@
+﻿@model System.Data.DataTable
+
+@{
+    ViewBag.Title = "Data Table View";
+}
+
+<h2>Data Table</h2>
+
+@Html.ActionLink("PDF Report", "GenerateReport", "Report", new { area = "" , target = "_blank" }, new { @class = "btn btn-primary" })
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            @foreach (System.Data.DataColumn column in Model.Columns)
+            {
+                <th>@column.ColumnName</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (System.Data.DataRow row in Model.Rows)
+        {
+            <tr>
+                @foreach (var item in row.ItemArray)
+                {
+                    <td>@item</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+
