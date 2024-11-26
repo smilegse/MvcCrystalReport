@@ -6,7 +6,7 @@ When long running report taking more time, you can call another report
 
 Requirement:
 1. ASP.Net MVC
-2. Crystal Report Support
+2. Crystal Report development environment
 3. AdvantureWork2019 database
 
 AdventureWorks2019 database Link: 
