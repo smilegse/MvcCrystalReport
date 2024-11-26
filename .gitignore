@@ -3,3 +3,8 @@
 ################################################################################
 
 /MvcCrystalReport/.vs/MvcCrystalReport.csproj.dtbcache.json
+
+.vs/
+/MvcCrystalReport/obj/
+/MvcCrystalReport/bin/
+.gitignore

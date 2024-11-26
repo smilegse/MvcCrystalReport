@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using CrystalDecisions.CrystalReports.Engine;
 using System.IO;
 using CrystalDecisions.Shared;
+using Microsoft.AspNetCore.Http;
 
 namespace MvcCrystalReport.Controllers
 {
@@ -17,11 +18,12 @@ namespace MvcCrystalReport.Controllers
         // GET: Report
         public async Task<ActionResult> Index()
         {
-            var dataTable = await GetDataAsync();
+            var query = "SELECT * FROM [Sales].[vStoreWithDemographics]"; 
+            var dataTable = await GetDataAsync(query);
             return View(dataTable);
         }
 
-        public async Task<ActionResult> GenerateReport()
+        public async Task<ActionResult> GenerateSalesReport()
         {
             // Simulating long-running process
             System.Threading.Thread.Sleep(10000);
@@ -31,29 +33,40 @@ namespace MvcCrystalReport.Controllers
             reportDocument.Load(reportPath);
 
             // Optionally set data source if it's dynamic
-            var dt = await GetDataAsync();
+            var query = "SELECT * FROM [Sales].[vStoreWithDemographics]";
+            var dt = await GetDataAsync(query);
             reportDocument.SetDataSource(dt);
-            Response.Buffer = false;
-            Response.ClearContent();
-            Response.ClearHeaders();
-
             // Export the report to a stream in PDF format
             Stream stream = reportDocument.ExportToStream(ExportFormatType.PortableDocFormat);
-            reportDocument.Close();
-            reportDocument.Dispose();
             
             // Return the PDF as a FileResult
             return File(stream, "application/pdf", "Report.pdf");
         }
 
+        public async Task<ActionResult> GenerateTopSalesReport()
+        {
+            ReportDocument reportDocument = new ReportDocument();
+            string reportPath = Server.MapPath("~/Reports/rptSales.rpt");
+            reportDocument.Load(reportPath);
 
-        private async Task<DataTable> GetDataAsync()
+            // Optionally set data source if it's dynamic
+            var query = "SELECT TOP 100 * FROM [Sales].[vStoreWithDemographics]";
+            var dt = await GetDataAsync(query);
+            reportDocument.SetDataSource(dt);
+
+            // Export the report to a stream in PDF format
+            Stream stream = reportDocument.ExportToStream(ExportFormatType.PortableDocFormat);
+
+            // Return the PDF as a FileResult
+            return File(stream, "application/pdf", "Report.pdf");
+        }
+
+        private async Task<DataTable> GetDataAsync(string query)
         {
             var connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["MyDbContext"].ConnectionString;
             var dataTable = new DataTable();
             using (var connection = new SqlConnection(connectionString))
             {
-                var query = "SELECT * FROM [Sales].[vStoreWithDemographics]";
                 using (var command = new SqlCommand(query, connection))
                 using (var adapter = new SqlDataAdapter(command))
                 {
