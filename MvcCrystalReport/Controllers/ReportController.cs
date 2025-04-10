@@ -19,14 +19,15 @@ namespace MvcCrystalReport.Controllers
         public async Task<ActionResult> Index()
         {
             var query = "SELECT * FROM [Sales].[vStoreWithDemographics]"; 
-            var dataTable = await GetDataAsync(query);
+            //var dataTable = await GetDataAsync(query);
+            var dataTable = GetData(query);
             return View(dataTable);
         }
 
-        public async Task<ActionResult> GenerateSalesReport()
+        public async Task<ActionResult> LongRunningReport()
         {
             // Simulating long-running process
-            System.Threading.Thread.Sleep(10000);
+            System.Threading.Thread.Sleep(20000);
 
             ReportDocument reportDocument = new ReportDocument();
             string reportPath = Server.MapPath("~/Reports/rptCustomer.rpt");
@@ -34,7 +35,8 @@ namespace MvcCrystalReport.Controllers
 
             // Optionally set data source if it's dynamic
             var query = "SELECT * FROM [Sales].[vStoreWithDemographics]";
-            var dt = await GetDataAsync(query);
+            //var dt = await GetDataAsync(query);
+            var dt = GetData(query);
             reportDocument.SetDataSource(dt);
             // Export the report to a stream in PDF format
             Stream stream = reportDocument.ExportToStream(ExportFormatType.PortableDocFormat);
@@ -43,7 +45,7 @@ namespace MvcCrystalReport.Controllers
             return File(stream, "application/pdf", "Report.pdf");
         }
 
-        public async Task<ActionResult> GenerateTopSalesReport()
+        public async Task<ActionResult> FastReport()
         {
             ReportDocument reportDocument = new ReportDocument();
             string reportPath = Server.MapPath("~/Reports/rptSales.rpt");
@@ -51,7 +53,8 @@ namespace MvcCrystalReport.Controllers
 
             // Optionally set data source if it's dynamic
             var query = "SELECT TOP 100 * FROM [Sales].[vStoreWithDemographics]";
-            var dt = await GetDataAsync(query);
+            //var dt = await GetDataAsync(query);
+            var dt = GetData(query);
             reportDocument.SetDataSource(dt);
 
             // Export the report to a stream in PDF format
@@ -72,6 +75,22 @@ namespace MvcCrystalReport.Controllers
                 {
                     await connection.OpenAsync();
                     await Task.Run(() => adapter.Fill(dataTable));
+                }
+            }
+            return dataTable;
+        }
+
+        private DataTable GetData(string query)
+        {
+            var connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["MyDbContext"].ConnectionString;
+            var dataTable = new DataTable();
+            using (var connection = new SqlConnection(connectionString))
+            {
+                using (var command = new SqlCommand(query, connection))
+                using (var adapter = new SqlDataAdapter(command))
+                {
+                    connection.Open();
+                    adapter.Fill(dataTable);
                 }
             }
             return dataTable;
